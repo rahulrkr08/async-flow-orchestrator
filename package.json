@@ -1,0 +1,33 @@
+{
+  "name": "async-orchestrator",
+  "version": "1.0.0",
+  "description": "Event-driven asynchronous workflow orchestration system",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "examples": "ts-node examples/basic.example.ts",
+    "test": "ts-node test/index.test.ts",
+    "prepublishOnly": "npm run build",
+    "clean": "rm -rf dist"
+  },
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/async-workflow"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
