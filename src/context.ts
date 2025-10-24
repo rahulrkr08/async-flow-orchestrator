@@ -10,6 +10,14 @@ import { EventEmitter } from 'events';
 export type ProcessStatus = 'pending' | 'running' | 'completed' | 'skipped' | 'failed';
 
 /**
+ * Logger interface
+ */
+export interface Logger {
+  info: (message: string, ...args: any[]) => void;
+  debug: (message: string, ...args: any[]) => void;
+}
+
+/**
  * Bind event emitted when context.set() is called
  */
 export interface BindEvent {
@@ -26,14 +34,20 @@ export class Context extends EventEmitter {
 
   /**
    * Set a value in context and emit 'bind' event
-   * 
+   *
    * @param processId - Process identifier
    * @param result - Process result
    * @param status - Process status
+   * @param logger - Optional logger instance
    */
-  set(processId: string, result: any, status: ProcessStatus = 'completed'): void {
+  set(processId: string, result: any, status: ProcessStatus = 'completed', logger?: Logger): void {
     this.data[processId] = result;
-    
+
+    // Log when process completes
+    if (status === 'completed' && logger?.info) {
+      logger.info(`Process "${processId}" completed`);
+    }
+
     // Emit 'bind' event when value is set
     const event: BindEvent = { processId, status, result };
     this.emit('bind', event);

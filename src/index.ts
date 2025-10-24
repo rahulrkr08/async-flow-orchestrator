@@ -14,6 +14,7 @@ export {
   WorkflowConfig,
   ProcessState,
   WorkflowResult,
+  Logger,
 } from './types';
 export { WorkflowEngine } from './workflow-engine';
 

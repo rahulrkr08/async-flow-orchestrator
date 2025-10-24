@@ -5,6 +5,14 @@
 import { Context } from './context';
 
 /**
+ * Logger interface
+ */
+export interface Logger {
+  info: (message: string, ...args: any[]) => void;
+  debug: (message: string, ...args: any[]) => void;
+}
+
+/**
  * Error handling strategy
  */
 export type ErrorStrategy = 'silent' | 'throw';
@@ -55,15 +63,18 @@ export interface Process {
 export interface WorkflowConfig {
   /** Array of process definitions */
   processes: Process[];
-  
+
   /** Output strategy: 'combined' returns all results, 'single' returns specific result */
   outputStrategy: OutputStrategy;
-  
+
   /** Target process ID (required when outputStrategy is 'single') */
   targetProcessId?: string;
-  
+
   /** Initial context values */
   initialContext?: Record<string, any>;
+
+  /** Logger instance (defaults to noop logger) */
+  logger?: Logger;
 }
 
 /**

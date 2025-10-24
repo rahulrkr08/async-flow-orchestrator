@@ -1,21 +1,21 @@
 {
-  "name": "async-orchestrator",
+  "name": "async-flow-orchestrator",
   "version": "1.0.0",
-  "description": "Event-driven asynchronous workflow orchestration system",
+  "description": "Event-driven asynchronous workflow orchestration library for Node.js",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "examples": "ts-node examples/basic.example.ts",
-    "test": "ts-node test/index.test.ts",
+    "test": "borp --coverage",
     "prepublishOnly": "npm run build",
     "clean": "rm -rf dist"
   },
-  "author": "",
+  "author": "Rahul Radhakrishnan",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/async-workflow"
+    "url": "https://github.com/rahulrkr08/async-flow-orchestrator"
   },
   "files": [
     "dist",
@@ -24,7 +24,9 @@
   ],
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "borp": "^0.21.0",
     "ts-node": "^10.9.0",
+    "tsx": "^4.7.0",
     "typescript": "^5.0.0"
   },
   "engines": {

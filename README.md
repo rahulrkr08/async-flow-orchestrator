@@ -1,4 +1,4 @@
-# async-orchestrator
+# async-flow-orchestrator
 
 > Event-driven asynchronous workflow orchestration system
 
@@ -7,13 +7,13 @@ An event-driven workflow system that executes asynchronous processes based on th
 ## Installation
 
 ```bash
-npm install async-orchestrator
+npm install async-flow-orchestrator
 ```
 
 ## Quick Start
 
 ```typescript
-import { executeWorkflow, Process } from 'async-orchestrator';
+import { executeWorkflow, Process } from 'async-flow-orchestrator';
 
 const processes: Process[] = [
   {
@@ -96,7 +96,7 @@ interface WorkflowResult {
 Direct engine access for advanced usage:
 
 ```typescript
-import { WorkflowEngine } from 'async-orchestrator';
+import { WorkflowEngine } from 'async-flow-orchestrator';
 
 const engine = new WorkflowEngine(config);
 const context = engine.getContext();
@@ -353,7 +353,7 @@ import {
   WorkflowResult,
   Context,
   BindEvent 
-} from 'async-orchestrator';
+} from 'async-flow-orchestrator';
 ```
 
 ## License

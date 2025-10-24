@@ -6,9 +6,9 @@ import { Context, BindEvent } from './context';
 import {
   Process,
   ProcessState,
-  ProcessStatus,
   WorkflowConfig,
   WorkflowResult,
+  Logger,
 } from './types';
 
 /**
@@ -20,9 +20,11 @@ export class WorkflowEngine {
   private context: Context;
   private config: WorkflowConfig;
   private errors: Map<string, Error>;
-  
+  private logger: Logger;
+
   private completedProcesses: string[] = [];
   private processesInProgress: string[] = [];
+  private completionResolver: (() => void) | null = null;
 
   constructor(config: WorkflowConfig) {
     this.config = config;
@@ -30,6 +32,7 @@ export class WorkflowEngine {
     this.processStates = new Map();
     this.context = new Context();
     this.errors = new Map();
+    this.logger = config.logger || { info: () => {}, debug: () => {} };
 
     // Set initial context values
     if (config.initialContext) {
@@ -55,20 +58,37 @@ export class WorkflowEngine {
   private setupBindListener(): void {
     this.context.on('bind', async (event: BindEvent) => {
       const { processId } = event;
-      
+
       // Only track if it's a process completion (not initial context)
       if (this.processes.has(processId)) {
         this.completedProcesses.push(processId);
       }
-      
+
       // Find processes that can now execute
       const processesToExecute = this.findReadyProcesses();
-      
+
       if (processesToExecute.length > 0) {
         // Execute all ready processes in parallel
         await Promise.all(
           processesToExecute.map(id => this.executeProcess(id))
         );
+      } else {
+        // No processes to execute, check if workflow is complete
+        this.context.emit('checkCompletion');
+      }
+    });
+
+    // Listen for checkCompletion event to resolve when all processes are done
+    this.context.on('checkCompletion', () => {
+      const allProcessed = Array.from(this.processStates.values()).every(
+        state => state.status === 'completed' ||
+                 state.status === 'skipped' ||
+                 state.status === 'failed'
+      );
+
+      if (allProcessed && this.completionResolver) {
+        this.completionResolver();
+        this.completionResolver = null;
       }
     });
   }
@@ -195,7 +215,7 @@ export class WorkflowEngine {
    */
   private shouldExecuteProcess(processId: string): boolean {
     const process = this.processes.get(processId)!;
-    
+
     if (!process.condition) {
       return true;
     }
@@ -203,7 +223,6 @@ export class WorkflowEngine {
     try {
       return process.condition(this.context);
     } catch (error) {
-      console.error(`Error evaluating condition for process "${processId}":`, error);
       return false;
     }
   }
@@ -220,42 +239,37 @@ export class WorkflowEngine {
     // Check condition
     if (!this.shouldExecuteProcess(processId)) {
       state.status = 'skipped';
-      console.log(`Process "${processId}" skipped due to condition`);
-      
+
       // Set undefined in context to trigger bind event
-      this.context.set(processId, undefined, 'skipped');
+      this.context.set(processId, undefined, 'skipped', this.logger);
       return;
     }
 
     state.status = 'running';
-    console.log(`Process "${processId}" started`);
 
     try {
       // Execute process with context
       const result = await process.execute(this.context);
-      
+
       state.status = 'completed';
-      console.log(`Process "${processId}" completed`);
-      
+
       // Set result in context - this emits 'bind' event
-      this.context.set(processId, result, 'completed');
-      
+      this.context.set(processId, result, 'completed', this.logger);
+
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       state.status = 'failed';
       state.error = err;
       this.errors.set(processId, err);
 
-      console.error(`Process "${processId}" failed:`, err.message);
-
       if (process.errorStrategy === 'throw') {
         throw new Error(
           `Process "${processId}" failed with "throw" error strategy: ${err.message}`
         );
       }
-      
+
       // For silent errors, still set undefined to unblock dependents
-      this.context.set(processId, undefined, 'failed');
+      this.context.set(processId, undefined, 'failed', this.logger);
     }
   }
 
@@ -278,27 +292,35 @@ export class WorkflowEngine {
    * Execute the workflow
    */
   async execute(): Promise<WorkflowResult> {
-    console.log('Starting workflow execution...\n');
-    
     try {
       const rootProcesses = this.getRootProcesses();
-      
+
       if (rootProcesses.length === 0) {
         throw new Error('No root processes found');
       }
 
-      console.log(`Starting ${rootProcesses.length} root process(es): ${rootProcesses.join(', ')}\n`);
+      // Create a promise that resolves when all processes complete
+      const completionPromise = new Promise<void>((resolve) => {
+        this.completionResolver = resolve;
+      });
 
       // Execute all root processes - they will trigger dependents via bind events
       await Promise.all(
         rootProcesses.map(processId => this.executeProcess(processId))
       );
 
+      // Check if there are no ready processes after root execution
+      const processesToExecute = this.findReadyProcesses();
+      if (processesToExecute.length === 0) {
+        // Manually trigger checkCompletion if no processes are ready
+        this.context.emit('checkCompletion');
+      }
+
       // Wait for all processes to complete
-      await this.waitForCompletion();
+      await completionPromise;
 
       let resultContext: Record<string, any>;
-      
+
       if (this.config.outputStrategy === 'single') {
         const targetId = this.config.targetProcessId!;
         resultContext = { [targetId]: this.context.get(targetId) };
@@ -306,46 +328,23 @@ export class WorkflowEngine {
         resultContext = this.context.getAll();
       }
 
-      return {
-        context: resultContext,
-        processStates: Object.fromEntries(
-          Array.from(this.processStates.entries()).map(([id, state]) => [id, state.status])
-        ),
-        errors: Object.fromEntries(this.errors),
-      };
+      return this.buildResult(resultContext);
     } catch (error) {
-      console.error('Workflow execution failed:', error);
-      
-      return {
-        context: this.context.getAll(),
-        processStates: Object.fromEntries(
-          Array.from(this.processStates.entries()).map(([id, state]) => [id, state.status])
-        ),
-        errors: Object.fromEntries(this.errors),
-      };
+      /* c8 ignore next 2 */
+      return this.buildResult(this.context.getAll());
     }
   }
 
   /**
-   * Wait for all processes to reach terminal state
+   * Build the result object with context, process states, and errors
    */
-  private async waitForCompletion(): Promise<void> {
-    return new Promise((resolve) => {
-      const checkCompletion = () => {
-        const allProcessed = Array.from(this.processStates.values()).every(
-          state => state.status === 'completed' || 
-                   state.status === 'skipped' || 
-                   state.status === 'failed'
-        );
-        
-        if (allProcessed) {
-          resolve();
-        } else {
-          setImmediate(checkCompletion);
-        }
-      };
-      
-      checkCompletion();
-    });
+  private buildResult(resultContext: Record<string, any>): WorkflowResult {
+    return {
+      context: resultContext,
+      processStates: Object.fromEntries(
+        Array.from(this.processStates.entries()).map(([id, state]) => [id, state.status])
+      ),
+      errors: Object.fromEntries(this.errors),
+    };
   }
 }
