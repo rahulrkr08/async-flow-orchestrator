@@ -8,6 +8,7 @@ export { Context, BindEvent, ProcessStatus } from './context';
 export {
   ErrorStrategy,
   OutputStrategy,
+  OutputConfig,
   ProcessFunction,
   ConditionFunction,
   Process,

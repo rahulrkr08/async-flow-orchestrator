@@ -2,8 +2,8 @@
   "name": "async-flow-orchestrator",
   "version": "1.0.0",
   "description": "Event-driven asynchronous workflow orchestration library for Node.js",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
     "build": "tsc",
     "examples": "ts-node examples/basic.example.ts",
@@ -26,10 +26,9 @@
     "@types/node": "^20.0.0",
     "borp": "^0.21.0",
     "ts-node": "^10.9.0",
-    "tsx": "^4.7.0",
     "typescript": "^5.0.0"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=20.0.0"
   }
 }

@@ -38,7 +38,7 @@ const processes: Process[] = [
 
 const result = await executeWorkflow({
   processes,
-  outputStrategy: 'combined',
+  output: { strategy: 'all' },  // optional, defaults to 'all'
 });
 
 console.log(result.context);
@@ -76,15 +76,19 @@ Process A completes
 Execute a workflow with the given configuration.
 
 ```typescript
+interface OutputConfig {
+  strategy: 'single' | 'multiple' | 'all';  // Defaults to 'all'
+  processId?: string | string[];             // Required for 'single'/'multiple'
+}
+
 interface WorkflowConfig {
   processes: Process[];
-  outputStrategy: 'combined' | 'single';
-  targetProcessId?: string;        // Required when outputStrategy is 'single'
+  output?: OutputConfig;                    // Optional, defaults to { strategy: 'all' }
   initialContext?: Record<string, any>;
+  logger?: Logger;                          // Optional custom logger
 }
 
 interface WorkflowResult {
-  success: boolean;
   context: Record<string, any>;
   processStates: Record<string, ProcessStatus>;
   errors: Record<string, Error>;
@@ -221,7 +225,10 @@ const processes: Process[] = [
 ### Event Listening
 
 ```typescript
-const engine = new WorkflowEngine({ processes, outputStrategy: 'combined' });
+const engine = new WorkflowEngine({
+  processes,
+  output: { strategy: 'all' }  // optional
+});
 const context = engine.getContext();
 
 context.on('bind', (event: BindEvent) => {
@@ -238,7 +245,7 @@ await engine.execute();
 ```typescript
 const result = await executeWorkflow({
   processes,
-  outputStrategy: 'combined',
+  output: { strategy: 'all' },  // optional
   initialContext: {
     config: {
       apiKey: 'abc123',
@@ -299,16 +306,23 @@ const processes: Process[] = [
 
 ### Output Strategies
 
-**Combined**: Returns all process results
+**All** (Default): Returns all process results
 ```typescript
-{ outputStrategy: 'combined' }
+{ output: { strategy: 'all' } }
+// or omit output entirely as 'all' is the default
 // Returns: { process1: {...}, process2: {...}, ... }
 ```
 
 **Single**: Returns only specified process result
 ```typescript
-{ outputStrategy: 'single', targetProcessId: 'finalProcess' }
+{ output: { strategy: 'single', processId: 'finalProcess' } }
 // Returns: { finalProcess: {...} }
+```
+
+**Multiple**: Returns specified process results
+```typescript
+{ output: { strategy: 'multiple', processId: ['process1', 'process3'] } }
+// Returns: { process1: {...}, process3: {...} }
 ```
 
 ### Error Strategies
@@ -330,7 +344,8 @@ The system automatically validates:
 - ✓ No duplicate process IDs
 - ✓ All dependencies exist
 - ✓ No circular dependencies (using DFS algorithm)
-- ✓ Target process exists (for single output strategy)
+- ✓ Target process(es) exist (for single/multiple output strategies)
+- ✓ Output configuration is valid
 
 ## Use Cases
 

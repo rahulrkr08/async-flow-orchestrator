@@ -117,8 +117,23 @@ export class WorkflowEngine {
    * Validates configuration and initializes process states
    */
   private validateAndInitialize(): void {
-    if (this.config.outputStrategy === 'single' && !this.config.targetProcessId) {
-      throw new Error('targetProcessId is required when outputStrategy is "single"');
+    // Set default output configuration
+    if (!this.config.output) {
+      this.config.output = { strategy: 'all' };
+    }
+
+    // Validate output configuration
+    const { output } = this.config;
+    if ((output.strategy === 'single' || output.strategy === 'multiple') && !output.processId) {
+      throw new Error(`processId is required when output strategy is "${output.strategy}"`);
+    }
+
+    if (output.strategy === 'single' && typeof output.processId !== 'string') {
+      throw new Error('processId must be a string when output strategy is "single"');
+    }
+
+    if (output.strategy === 'multiple' && !Array.isArray(output.processId)) {
+      throw new Error('processId must be an array of strings when output strategy is "multiple"');
     }
 
     for (const process of this.config.processes) {
@@ -156,8 +171,18 @@ export class WorkflowEngine {
       }
     }
 
-    if (this.config.targetProcessId && !this.processes.has(this.config.targetProcessId)) {
-      throw new Error(`Target process "${this.config.targetProcessId}" does not exist`);
+    // Validate target process IDs exist
+    const { strategy, processId } = this.config.output;
+    if (strategy === 'single' && typeof processId === 'string') {
+      if (!this.processes.has(processId)) {
+        throw new Error(`Process "${processId}" does not exist`);
+      }
+    } else if (strategy === 'multiple' && Array.isArray(processId)) {
+      for (const id of processId) {
+        if (!this.processes.has(id)) {
+          throw new Error(`Process "${id}" does not exist`);
+        }
+      }
     }
   }
 
@@ -320,11 +345,19 @@ export class WorkflowEngine {
       await completionPromise;
 
       let resultContext: Record<string, any>;
+      const { strategy, processId } = this.config?.output || { strategy: 'all' };
 
-      if (this.config.outputStrategy === 'single') {
-        const targetId = this.config.targetProcessId!;
+      if (strategy === 'single') {
+        const targetId = processId as string;
         resultContext = { [targetId]: this.context.get(targetId) };
+      } else if (strategy === 'multiple') {
+        const targetIds = processId as string[];
+        resultContext = {};
+        for (const id of targetIds) {
+          resultContext[id] = this.context.get(id);
+        }
       } else {
+        // 'all' strategy
         resultContext = this.context.getAll();
       }
 
