@@ -17,11 +17,6 @@
     "type": "git",
     "url": "https://github.com/rahulrkr08/async-flow-orchestrator"
   },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
   "devDependencies": {
     "@types/node": "^20.0.0",
     "borp": "^0.21.0",
