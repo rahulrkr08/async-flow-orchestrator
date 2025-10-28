@@ -93,7 +93,7 @@ async function example2_ParallelFlow() {
     targetProcessId: 'mergeData',
   });
 
-  console.log('\n✅ Result:', JSON.stringify(result.context, null, 2));
+  console.log('\n✅ Result:', JSON.stringify(result.result, null, 2));
   console.log('\n');
 }
 
@@ -149,8 +149,8 @@ async function example3_ConditionalFlow() {
     outputStrategy: 'combined',
   });
 
-  console.log('\n✅ Result:', JSON.stringify(result.context, null, 2));
-  console.log('📊 States:', result.processStates);
+  console.log('\n✅ Result:', JSON.stringify(result.result, null, 2));
+  console.log('📊 States:', result.states);
   console.log('\n');
 }
 
@@ -196,8 +196,8 @@ async function example4_ErrorHandling() {
     outputStrategy: 'combined',
   });
 
-  console.log('\n✅ Result:', JSON.stringify(result.context.step3, null, 2));
-  console.log('📊 States:', result.processStates);
+  console.log('\n✅ Result:', JSON.stringify(result.result.step3, null, 2));
+  console.log('📊 States:', result.states);
   console.log('❌ Errors:', Object.keys(result.errors));
   console.log('\n');
 }
@@ -243,7 +243,7 @@ async function example5_EventListening() {
 
   const result = await engine.execute();
 
-  console.log('\n✅ Final:', JSON.stringify(result.context, null, 2));
+  console.log('\n✅ Final:', JSON.stringify(result.result, null, 2));
   console.log('\n');
 }
 

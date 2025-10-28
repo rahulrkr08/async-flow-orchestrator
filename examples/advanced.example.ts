@@ -94,7 +94,7 @@ async function example1_ComplexGraph() {
     targetProcessId: 'F',
   });
 
-  console.log('\n✅ Result:', JSON.stringify(result.context, null, 2));
+  console.log('\n✅ Result:', JSON.stringify(result.result, null, 2));
   console.log('\n');
 }
 
@@ -231,7 +231,7 @@ async function example2_DataPipeline() {
     targetProcessId: 'generateReport',
   });
 
-  console.log('\n✅ ETL Report:', JSON.stringify(result.context, null, 2));
+  console.log('\n✅ ETL Report:', JSON.stringify(result.result, null, 2));
   console.log('\n');
 }
 
@@ -335,7 +335,7 @@ async function example3_APIComposition() {
     targetProcessId: 'buildUserDashboard',
   });
 
-  console.log('\n✅ Dashboard:', JSON.stringify(result.context, null, 2));
+  console.log('\n✅ Dashboard:', JSON.stringify(result.result, null, 2));
   console.log('\n');
 }
 
@@ -400,7 +400,7 @@ async function example4_InitialContext() {
     },
   });
 
-  console.log('\n✅ Result:', JSON.stringify(result.context.fetchData, null, 2));
+  console.log('\n✅ Result:', JSON.stringify(result.result.fetchData, null, 2));
   console.log('\n');
 }
 

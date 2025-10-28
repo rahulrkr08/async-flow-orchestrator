@@ -41,7 +41,7 @@ const result = await executeWorkflow({
   output: { strategy: 'all' },  // optional, defaults to 'all'
 });
 
-console.log(result.context);
+console.log(result.result);
 // { fetchUser: { userId: 123, name: 'John Doe' }, processUser: { message: 'Processed John Doe' } }
 ```
 
@@ -89,8 +89,8 @@ interface WorkflowConfig {
 }
 
 interface WorkflowResult {
-  context: Record<string, any>;
-  processStates: Record<string, ProcessStatus>;
+  result: Record<string, any>;
+  states: Record<string, ProcessStatus>;
   errors: Record<string, Error>;
 }
 ```

@@ -257,9 +257,9 @@ describe('WorkflowEngine', () => {
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
       // Should return all results when output is not specified
-      assert.deepStrictEqual(Object.keys(result.context).sort(), ['process1', 'process2']);
-      assert.strictEqual(result.context.process1, 'result1');
-      assert.strictEqual(result.context.process2, 'result2');
+      assert.deepStrictEqual(Object.keys(result.result).sort(), ['process1', 'process2']);
+      assert.strictEqual(result.result.process1, 'result1');
+      assert.strictEqual(result.result.process2, 'result2');
     });
   });
 
@@ -278,8 +278,8 @@ describe('WorkflowEngine', () => {
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      assert.strictEqual(result.context.process1, 'result1');
-      assert.strictEqual(result.processStates.process1, 'completed');
+      assert.strictEqual(result.result.process1, 'result1');
+      assert.strictEqual(result.states.process1, 'completed');
       assert.deepStrictEqual(result.errors, {});
     });
 
@@ -310,8 +310,8 @@ describe('WorkflowEngine', () => {
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      assert.strictEqual(result.context.process1, 'result1');
-      assert.strictEqual(result.context.process2, 'result2');
+      assert.strictEqual(result.result.process1, 'result1');
+      assert.strictEqual(result.result.process2, 'result2');
       assert.strictEqual(executionOrder.length, 2);
     });
 
@@ -335,8 +335,8 @@ describe('WorkflowEngine', () => {
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      assert.strictEqual(result.context.process1, 10);
-      assert.strictEqual(result.context.process2, 20);
+      assert.strictEqual(result.result.process1, 10);
+      assert.strictEqual(result.result.process2, 20);
     });
 
     it('should execute complex dependency graph', async () => {
@@ -371,10 +371,10 @@ describe('WorkflowEngine', () => {
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      assert.strictEqual(result.context.A, 1);
-      assert.strictEqual(result.context.B, 2);
-      assert.strictEqual(result.context.C, 3);
-      assert.strictEqual(result.context.D, 6);
+      assert.strictEqual(result.result.A, 1);
+      assert.strictEqual(result.result.B, 2);
+      assert.strictEqual(result.result.C, 3);
+      assert.strictEqual(result.result.D, 6);
     });
 
     it('should return single output when output strategy is single', async () => {
@@ -397,8 +397,8 @@ describe('WorkflowEngine', () => {
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      assert.deepStrictEqual(Object.keys(result.context), ['process2']);
-      assert.strictEqual(result.context.process2, 'result2');
+      assert.deepStrictEqual(Object.keys(result.result), ['process2']);
+      assert.strictEqual(result.result.process2, 'result2');
     });
 
     it('should return multiple outputs when output strategy is multiple', async () => {
@@ -427,9 +427,9 @@ describe('WorkflowEngine', () => {
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      assert.deepStrictEqual(Object.keys(result.context).sort(), ['A', 'C']);
-      assert.strictEqual(result.context.A, 'resultA');
-      assert.strictEqual(result.context.C, 'resultC');
+      assert.deepStrictEqual(Object.keys(result.result).sort(), ['A', 'C']);
+      assert.strictEqual(result.result.A, 'resultA');
+      assert.strictEqual(result.result.C, 'resultC');
     });
 
     it('should return all outputs when output strategy is all', async () => {
@@ -452,9 +452,9 @@ describe('WorkflowEngine', () => {
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      assert.deepStrictEqual(Object.keys(result.context).sort(), ['process1', 'process2']);
-      assert.strictEqual(result.context.process1, 'result1');
-      assert.strictEqual(result.context.process2, 'result2');
+      assert.deepStrictEqual(Object.keys(result.result).sort(), ['process1', 'process2']);
+      assert.strictEqual(result.result.process1, 'result1');
+      assert.strictEqual(result.result.process2, 'result2');
     });
 
     it('should skip process when condition returns false', async () => {
@@ -472,8 +472,8 @@ describe('WorkflowEngine', () => {
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      assert.strictEqual(result.processStates.process1, 'skipped');
-      assert.strictEqual(result.context.process1, undefined);
+      assert.strictEqual(result.states.process1, 'skipped');
+      assert.strictEqual(result.result.process1, undefined);
     });
 
     it('should execute process when condition returns true', async () => {
@@ -491,8 +491,8 @@ describe('WorkflowEngine', () => {
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      assert.strictEqual(result.processStates.process1, 'completed');
-      assert.strictEqual(result.context.process1, 'result1');
+      assert.strictEqual(result.states.process1, 'completed');
+      assert.strictEqual(result.result.process1, 'result1');
     });
 
     it('should skip process when condition throws error', async () => {
@@ -512,7 +512,7 @@ describe('WorkflowEngine', () => {
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      assert.strictEqual(result.processStates.process1, 'skipped');
+      assert.strictEqual(result.states.process1, 'skipped');
     });
 
     it('should evaluate condition with context', async () => {
@@ -536,8 +536,8 @@ describe('WorkflowEngine', () => {
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      assert.strictEqual(result.processStates.process2, 'completed');
-      assert.strictEqual(result.context.process2, 'executed');
+      assert.strictEqual(result.states.process2, 'completed');
+      assert.strictEqual(result.result.process2, 'executed');
     });
   });
 
@@ -564,8 +564,8 @@ describe('WorkflowEngine', () => {
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      assert.strictEqual(result.processStates.process1, 'failed');
-      assert.strictEqual(result.processStates.process2, 'completed');
+      assert.strictEqual(result.states.process1, 'failed');
+      assert.strictEqual(result.states.process2, 'completed');
       assert.ok(result.errors.process1);
       assert.strictEqual(result.errors.process1.message, 'Process 1 failed');
     });
@@ -592,8 +592,8 @@ describe('WorkflowEngine', () => {
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      assert.strictEqual(result.processStates.process1, 'failed');
-      assert.strictEqual(result.processStates.process2, 'pending');
+      assert.strictEqual(result.states.process1, 'failed');
+      assert.strictEqual(result.states.process2, 'pending');
       assert.ok(result.errors.process1);
     });
 
@@ -613,7 +613,7 @@ describe('WorkflowEngine', () => {
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      assert.strictEqual(result.processStates.process1, 'failed');
+      assert.strictEqual(result.states.process1, 'failed');
       assert.ok(result.errors.process1);
       assert.strictEqual(result.errors.process1.message, 'String error');
     });
@@ -628,7 +628,7 @@ describe('WorkflowEngine', () => {
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
       // Should return empty result
-      assert.deepStrictEqual(result.context, {});
+      assert.deepStrictEqual(result.result, {});
     });
   });
 
@@ -747,10 +747,10 @@ describe('WorkflowEngine', () => {
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      assert.strictEqual(result.context.process1, 'result1');
-      assert.strictEqual(result.context.process2, 'result1 extended');
-      assert.strictEqual(result.processStates.process1, 'completed');
-      assert.strictEqual(result.processStates.process2, 'completed');
+      assert.strictEqual(result.result.process1, 'result1');
+      assert.strictEqual(result.result.process2, 'result1 extended');
+      assert.strictEqual(result.states.process1, 'completed');
+      assert.strictEqual(result.states.process2, 'completed');
     });
 
     it('should handle multiple dependent processes with wait completion', async () => {
@@ -791,12 +791,12 @@ describe('WorkflowEngine', () => {
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      assert.strictEqual(result.context.A, 1);
-      assert.strictEqual(result.context.B, 2);
-      assert.strictEqual(result.context.C, 3);
-      assert.strictEqual(result.context.D, 30);
-      assert.strictEqual(result.context.E, 35);
-      assert.strictEqual(result.processStates.E, 'completed');
+      assert.strictEqual(result.result.A, 1);
+      assert.strictEqual(result.result.B, 2);
+      assert.strictEqual(result.result.C, 3);
+      assert.strictEqual(result.result.D, 30);
+      assert.strictEqual(result.result.E, 35);
+      assert.strictEqual(result.states.E, 'completed');
     });
 
     it('should complete all processes with deep dependency chain', async () => {
@@ -831,11 +831,11 @@ describe('WorkflowEngine', () => {
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      assert.strictEqual(result.processStates.step1, 'completed');
-      assert.strictEqual(result.processStates.step2, 'completed');
-      assert.strictEqual(result.processStates.step3, 'completed');
-      assert.strictEqual(result.processStates.step4, 'completed');
-      assert.strictEqual(result.context.step4, 'step1 -> step2 -> step3 -> step4');
+      assert.strictEqual(result.states.step1, 'completed');
+      assert.strictEqual(result.states.step2, 'completed');
+      assert.strictEqual(result.states.step3, 'completed');
+      assert.strictEqual(result.states.step4, 'completed');
+      assert.strictEqual(result.result.step4, 'step1 -> step2 -> step3 -> step4');
     });
 
     it('should ensure setImmediate is called during polling', async () => {
@@ -894,14 +894,14 @@ describe('WorkflowEngine', () => {
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
       // Verify all processes completed
-      assert.strictEqual(result.processStates.quick1, 'completed');
-      assert.strictEqual(result.processStates.quick2, 'completed');
-      assert.strictEqual(result.processStates.quick3, 'completed');
-      assert.strictEqual(result.processStates.quick4, 'completed');
-      assert.strictEqual(result.processStates.quick5, 'completed');
+      assert.strictEqual(result.states.quick1, 'completed');
+      assert.strictEqual(result.states.quick2, 'completed');
+      assert.strictEqual(result.states.quick3, 'completed');
+      assert.strictEqual(result.states.quick4, 'completed');
+      assert.strictEqual(result.states.quick5, 'completed');
       // Verify execution happened in order
       assert.strictEqual(executionTimes.length, 5);
-      assert.ok(result.context.quick5.includes('quick1'));
+      assert.ok(result.result.quick5.includes('quick1'));
     });
 
     it('should trigger checkCompletion event when no processes to execute', async () => {
@@ -919,8 +919,8 @@ describe('WorkflowEngine', () => {
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
       // After root process completes, checkCompletion should be triggered
-      assert.strictEqual(result.processStates.process1, 'completed');
-      assert.strictEqual(result.context.process1, 'result1');
+      assert.strictEqual(result.states.process1, 'completed');
+      assert.strictEqual(result.result.process1, 'result1');
       assert.deepStrictEqual(result.errors, {});
     });
 
@@ -951,12 +951,12 @@ describe('WorkflowEngine', () => {
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
       // Verify all processes executed and completion was resolved
-      assert.strictEqual(result.processStates.p1, 'completed');
-      assert.strictEqual(result.processStates.p2, 'completed');
-      assert.strictEqual(result.processStates.p3, 'completed');
-      assert.strictEqual(result.context.p1, 1);
-      assert.strictEqual(result.context.p2, 2);
-      assert.strictEqual(result.context.p3, 3);
+      assert.strictEqual(result.states.p1, 'completed');
+      assert.strictEqual(result.states.p2, 'completed');
+      assert.strictEqual(result.states.p3, 'completed');
+      assert.strictEqual(result.result.p1, 1);
+      assert.strictEqual(result.result.p2, 2);
+      assert.strictEqual(result.result.p3, 3);
     });
 
     it('should handle completion with mixed process states', async () => {
@@ -995,10 +995,10 @@ describe('WorkflowEngine', () => {
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
       // Verify all process states are terminal
-      assert.strictEqual(result.processStates.success, 'completed');
-      assert.strictEqual(result.processStates.skipped, 'skipped');
-      assert.strictEqual(result.processStates.failed, 'failed');
-      assert.strictEqual(result.processStates.dependent, 'completed');
+      assert.strictEqual(result.states.success, 'completed');
+      assert.strictEqual(result.states.skipped, 'skipped');
+      assert.strictEqual(result.states.failed, 'failed');
+      assert.strictEqual(result.states.dependent, 'completed');
     });
 
     it('should properly map all process states in result', async () => {
@@ -1034,15 +1034,15 @@ describe('WorkflowEngine', () => {
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
       // Verify that processStates is properly constructed with all processes
-      assert.strictEqual(Object.keys(result.processStates).length, 4);
-      assert.ok('p1' in result.processStates);
-      assert.ok('p2' in result.processStates);
-      assert.ok('p3' in result.processStates);
-      assert.ok('p4' in result.processStates);
-      assert.strictEqual(result.processStates.p1, 'completed');
-      assert.strictEqual(result.processStates.p2, 'completed');
-      assert.strictEqual(result.processStates.p3, 'completed');
-      assert.strictEqual(result.processStates.p4, 'completed');
+      assert.strictEqual(Object.keys(result.states).length, 4);
+      assert.ok('p1' in result.states);
+      assert.ok('p2' in result.states);
+      assert.ok('p3' in result.states);
+      assert.ok('p4' in result.states);
+      assert.strictEqual(result.states.p1, 'completed');
+      assert.strictEqual(result.states.p2, 'completed');
+      assert.strictEqual(result.states.p3, 'completed');
+      assert.strictEqual(result.states.p4, 'completed');
     });
 
     it('should include all process states when throw error occurs', async () => {
@@ -1074,12 +1074,12 @@ describe('WorkflowEngine', () => {
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
       // Even with error, result should include processStates for all processes
-      assert.ok('proc1' in result.processStates);
-      assert.ok('proc2' in result.processStates);
-      assert.ok('proc3' in result.processStates);
-      assert.strictEqual(result.processStates.proc1, 'failed');
-      assert.strictEqual(result.processStates.proc2, 'completed');
-      assert.strictEqual(result.processStates.proc3, 'completed');
+      assert.ok('proc1' in result.states);
+      assert.ok('proc2' in result.states);
+      assert.ok('proc3' in result.states);
+      assert.strictEqual(result.states.proc1, 'failed');
+      assert.strictEqual(result.states.proc2, 'completed');
+      assert.strictEqual(result.states.proc3, 'completed');
     });
 
     it('should return proper result in catch block when error is thrown', async () => {
@@ -1099,10 +1099,10 @@ describe('WorkflowEngine', () => {
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
       // Verify result is returned from catch block
-      assert.ok(result.processStates);
-      assert.ok(result.context);
+      assert.ok(result.states);
+      assert.ok(result.result);
       assert.ok(result.errors);
-      assert.strictEqual(result.processStates.throwingProcess, 'failed');
+      assert.strictEqual(result.states.throwingProcess, 'failed');
       assert.ok(result.errors.throwingProcess);
     });
   });
