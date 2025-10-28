@@ -37,8 +37,7 @@ const processes: Process[] = [
 ];
 
 const result = await executeWorkflow({
-  processes,
-  output: { strategy: 'all' },  // optional, defaults to 'all'
+  processes
 });
 
 console.log(result.data);
@@ -76,17 +75,11 @@ Process A completes
 
 ### `executeWorkflow(config: WorkflowConfig): Promise<WorkflowResult>`
 
-Execute a workflow with the given configuration.
+Execute a workflow with the given configuration. Returns all process results.
 
 ```typescript
-interface OutputConfig {
-  strategy: 'single' | 'multiple' | 'all';  // Defaults to 'all'
-  processId?: string | string[];             // Required for 'single'/'multiple'
-}
-
 interface WorkflowConfig {
   processes: Process[];
-  output?: OutputConfig;                    // Optional, defaults to { strategy: 'all' }
   initialContext?: Record<string, any>;
   logger?: Logger;                          // Optional custom logger
 }
@@ -231,8 +224,7 @@ const processes: Process[] = [
 
 ```typescript
 const engine = new WorkflowEngine({
-  processes,
-  output: { strategy: 'all' }  // optional
+  processes
 });
 const context = engine.getContext();
 
@@ -250,7 +242,6 @@ await engine.execute();
 ```typescript
 const result = await executeWorkflow({
   processes,
-  output: { strategy: 'all' },  // optional
   initialContext: {
     config: {
       apiKey: 'abc123',
@@ -308,27 +299,6 @@ const processes: Process[] = [
 ```
 
 ## Configuration Options
-
-### Output Strategies
-
-**All** (Default): Returns all process results
-```typescript
-{ output: { strategy: 'all' } }
-// or omit output entirely as 'all' is the default
-// Returns: { process1: {...}, process2: {...}, ... }
-```
-
-**Single**: Returns only specified process result
-```typescript
-{ output: { strategy: 'single', processId: 'finalProcess' } }
-// Returns: { finalProcess: {...} }
-```
-
-**Multiple**: Returns specified process results
-```typescript
-{ output: { strategy: 'multiple', processId: ['process1', 'process3'] } }
-// Returns: { process1: {...}, process3: {...} }
-```
 
 ### Error Strategies
 

@@ -38,7 +38,6 @@ async function example1_SimpleFlow() {
 
   const result = await executeWorkflow({
     processes,
-    outputStrategy: 'combined',
   });
 
   console.log('\n✅ Result:', JSON.stringify(result, null, 2));
@@ -89,8 +88,6 @@ async function example2_ParallelFlow() {
 
   const result = await executeWorkflow({
     processes,
-    outputStrategy: 'single',
-    targetProcessId: 'mergeData',
   });
 
   console.log('\n✅ Result:', JSON.stringify(result.data, null, 2));
@@ -146,7 +143,6 @@ async function example3_ConditionalFlow() {
 
   const result = await executeWorkflow({
     processes,
-    outputStrategy: 'combined',
   });
 
   console.log('\n✅ Result:', JSON.stringify(result.data, null, 2));
@@ -193,7 +189,6 @@ async function example4_ErrorHandling() {
 
   const result = await executeWorkflow({
     processes,
-    outputStrategy: 'combined',
   });
 
   console.log('\n✅ Result:', JSON.stringify(result.data.step3, null, 2));
@@ -230,7 +225,6 @@ async function example5_EventListening() {
 
   const engine = new WorkflowEngine({
     processes,
-    outputStrategy: 'combined',
   });
 
   const context = engine.getContext();

@@ -90,8 +90,6 @@ async function example1_ComplexGraph() {
 
   const result = await executeWorkflow({
     processes,
-    outputStrategy: 'single',
-    targetProcessId: 'F',
   });
 
   console.log('\n✅ Result:', JSON.stringify(result.data, null, 2));
@@ -227,8 +225,6 @@ async function example2_DataPipeline() {
 
   const result = await executeWorkflow({
     processes,
-    outputStrategy: 'single',
-    targetProcessId: 'generateReport',
   });
 
   console.log('\n✅ ETL Report:', JSON.stringify(result.data, null, 2));
@@ -331,8 +327,6 @@ async function example3_APIComposition() {
 
   const result = await executeWorkflow({
     processes,
-    outputStrategy: 'single',
-    targetProcessId: 'buildUserDashboard',
   });
 
   console.log('\n✅ Dashboard:', JSON.stringify(result.data, null, 2));
@@ -389,7 +383,6 @@ async function example4_InitialContext() {
 
   const result = await executeWorkflow({
     processes,
-    outputStrategy: 'combined',
     initialContext: {
       config: {
         apiKey: 'secret-key-123',

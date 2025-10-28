@@ -7,8 +7,6 @@
 export { Context, BindEvent, ProcessStatus } from './context';
 export {
   ErrorStrategy,
-  OutputStrategy,
-  OutputConfig,
   ProcessFunction,
   ConditionFunction,
   Process,
@@ -24,10 +22,10 @@ import { WorkflowConfig, WorkflowResult } from './types';
 
 /**
  * Execute a workflow with the given configuration
- * 
+ *
  * @param config - Workflow configuration
- * @returns Workflow execution result
- * 
+ * @returns Workflow execution result containing all process results
+ *
  * @example
  * ```typescript
  * const result = await executeWorkflow({
@@ -39,7 +37,6 @@ import { WorkflowConfig, WorkflowResult } from './types';
  *       errorStrategy: 'throw',
  *     },
  *   ],
- *   outputStrategy: 'combined',
  * });
  * ```
  */

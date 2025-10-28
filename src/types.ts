@@ -18,22 +18,6 @@ export interface Logger {
 export type ErrorStrategy = 'silent' | 'throw';
 
 /**
- * Output strategy for workflow results
- */
-export type OutputStrategy = 'single' | 'multiple' | 'all';
-
-/**
- * Output configuration
- */
-export interface OutputConfig {
-  /** Output strategy: 'single' returns specific process, 'multiple' returns specific processes, 'all' returns all results */
-  strategy: OutputStrategy;
-
-  /** Process ID (required for 'single' strategy) or array of process IDs (for 'multiple' strategy) */
-  processId?: string | string[];
-}
-
-/**
  * Process status
  */
 export type ProcessStatus = 'pending' | 'running' | 'completed' | 'skipped' | 'failed';
@@ -75,9 +59,6 @@ export interface WorkflowConfig {
   /** Array of process definitions */
   processes: Process[];
 
-  /** Output configuration (optional, defaults to { strategy: 'all' }) */
-  output?: OutputConfig;
-
   /** Initial context values */
   initialContext?: Record<string, any>;
 
@@ -100,7 +81,7 @@ export interface ProcessState {
  * Workflow execution result
  */
 export interface WorkflowResult {
-  /** Process results based on output strategy */
+  /** All process results */
   data: Record<string, any>;
 
   /** Metadata about workflow execution */

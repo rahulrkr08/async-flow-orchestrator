@@ -15,83 +15,10 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       assert.ok(engine);
       assert.ok(engine.getContext());
-    });
-
-    it('should throw error when processId is missing with single output strategy', () => {
-      const config: WorkflowConfig = {
-        processes: [
-          {
-            id: 'process1',
-            dependencies: [],
-            execute: async () => 'result1',
-            errorStrategy: 'silent',
-          },
-        ],
-        output: { strategy: 'single' },
-      };
-      assert.throws(
-        () => new WorkflowEngine(config),
-        /processId is required when output strategy is "single"/
-      );
-    });
-
-    it('should throw error when processId is missing with multiple output strategy', () => {
-      const config: WorkflowConfig = {
-        processes: [
-          {
-            id: 'process1',
-            dependencies: [],
-            execute: async () => 'result1',
-            errorStrategy: 'silent',
-          },
-        ],
-        output: { strategy: 'multiple' },
-      };
-      assert.throws(
-        () => new WorkflowEngine(config),
-        /processId is required when output strategy is "multiple"/
-      );
-    });
-
-    it('should throw error when processId is not a string for single strategy', () => {
-      const config: WorkflowConfig = {
-        processes: [
-          {
-            id: 'process1',
-            dependencies: [],
-            execute: async () => 'result1',
-            errorStrategy: 'silent',
-          },
-        ],
-        output: { strategy: 'single', processId: ['process1'] as any },
-      };
-      assert.throws(
-        () => new WorkflowEngine(config),
-        /processId must be a string when output strategy is "single"/
-      );
-    });
-
-    it('should throw error when processId is not an array for multiple strategy', () => {
-      const config: WorkflowConfig = {
-        processes: [
-          {
-            id: 'process1',
-            dependencies: [],
-            execute: async () => 'result1',
-            errorStrategy: 'silent',
-          },
-        ],
-        output: { strategy: 'multiple', processId: 'process1' as any },
-      };
-      assert.throws(
-        () => new WorkflowEngine(config),
-        /processId must be an array of strings when output strategy is "multiple"/
-      );
     });
 
     it('should throw error for duplicate process IDs', () => {
@@ -110,7 +37,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       assert.throws(
         () => new WorkflowEngine(config),
@@ -128,7 +54,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       assert.throws(
         () => new WorkflowEngine(config),
@@ -152,29 +77,10 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       assert.throws(
         () => new WorkflowEngine(config),
         /Circular dependency detected/
-      );
-    });
-
-    it('should throw error when target process does not exist', () => {
-      const config: WorkflowConfig = {
-        processes: [
-          {
-            id: 'process1',
-            dependencies: [],
-            execute: async () => 'result1',
-            errorStrategy: 'silent',
-          },
-        ],
-        output: { strategy: 'single', processId: 'nonexistent' },
-      };
-      assert.throws(
-        () => new WorkflowEngine(config),
-        /Process "nonexistent" does not exist/
       );
     });
 
@@ -190,7 +96,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
         initialContext: { initial: 'value' },
       };
       const engine = new WorkflowEngine(config);
@@ -213,7 +118,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
         logger,
       };
       const engine = new WorkflowEngine(config);
@@ -230,13 +134,12 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       assert.ok(engine);
     });
 
-    it('should use default output strategy all when not provided', async () => {
+    it('should return all results', async () => {
       const config: WorkflowConfig = {
         processes: [
           {
@@ -252,11 +155,11 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        // output is not provided, should default to 'all'
+        
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
-      // Should return all results when output is not specified
+      // Should return all results
       assert.deepStrictEqual(Object.keys(result.data).sort(), ['process1', 'process2']);
       assert.strictEqual(result.data.process1, 'result1');
       assert.strictEqual(result.data.process2, 'result2');
@@ -274,7 +177,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -306,7 +208,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -331,7 +232,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -367,7 +267,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -375,86 +274,6 @@ describe('WorkflowEngine', () => {
       assert.strictEqual(result.data.B, 2);
       assert.strictEqual(result.data.C, 3);
       assert.strictEqual(result.data.D, 6);
-    });
-
-    it('should return single output when output strategy is single', async () => {
-      const config: WorkflowConfig = {
-        processes: [
-          {
-            id: 'process1',
-            dependencies: [],
-            execute: async () => 'result1',
-            errorStrategy: 'silent',
-          },
-          {
-            id: 'process2',
-            dependencies: ['process1'],
-            execute: async () => 'result2',
-            errorStrategy: 'silent',
-          },
-        ],
-        output: { strategy: 'single', processId: 'process2' },
-      };
-      const engine = new WorkflowEngine(config);
-      const result = await engine.execute();
-      assert.deepStrictEqual(Object.keys(result.data), ['process2']);
-      assert.strictEqual(result.data.process2, 'result2');
-    });
-
-    it('should return multiple outputs when output strategy is multiple', async () => {
-      const config: WorkflowConfig = {
-        processes: [
-          {
-            id: 'A',
-            dependencies: [],
-            execute: async () => 'resultA',
-            errorStrategy: 'silent',
-          },
-          {
-            id: 'B',
-            dependencies: [],
-            execute: async () => 'resultB',
-            errorStrategy: 'silent',
-          },
-          {
-            id: 'C',
-            dependencies: ['A', 'B'],
-            execute: async () => 'resultC',
-            errorStrategy: 'silent',
-          },
-        ],
-        output: { strategy: 'multiple', processId: ['A', 'C'] },
-      };
-      const engine = new WorkflowEngine(config);
-      const result = await engine.execute();
-      assert.deepStrictEqual(Object.keys(result.data).sort(), ['A', 'C']);
-      assert.strictEqual(result.data.A, 'resultA');
-      assert.strictEqual(result.data.C, 'resultC');
-    });
-
-    it('should return all outputs when output strategy is all', async () => {
-      const config: WorkflowConfig = {
-        processes: [
-          {
-            id: 'process1',
-            dependencies: [],
-            execute: async () => 'result1',
-            errorStrategy: 'silent',
-          },
-          {
-            id: 'process2',
-            dependencies: ['process1'],
-            execute: async () => 'result2',
-            errorStrategy: 'silent',
-          },
-        ],
-        output: { strategy: 'all' },
-      };
-      const engine = new WorkflowEngine(config);
-      const result = await engine.execute();
-      assert.deepStrictEqual(Object.keys(result.data).sort(), ['process1', 'process2']);
-      assert.strictEqual(result.data.process1, 'result1');
-      assert.strictEqual(result.data.process2, 'result2');
     });
 
     it('should skip process when condition returns false', async () => {
@@ -468,7 +287,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -487,7 +305,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -508,7 +325,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -532,7 +348,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -560,7 +375,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -588,7 +402,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -609,7 +422,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -623,7 +435,6 @@ describe('WorkflowEngine', () => {
       // where we somehow bypass validation
       const config: WorkflowConfig = {
         processes: [],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -648,7 +459,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
         logger,
       };
       const engine = new WorkflowEngine(config);
@@ -673,7 +483,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
         logger,
       };
       const engine = new WorkflowEngine(config);
@@ -698,7 +507,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
         logger,
       };
       const engine = new WorkflowEngine(config);
@@ -718,7 +526,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const context = engine.getContext();
@@ -743,7 +550,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -787,7 +593,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -827,7 +632,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -889,7 +693,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -914,7 +717,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -946,7 +748,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -990,7 +791,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -1029,7 +829,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -1069,7 +868,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'silent',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
@@ -1094,7 +892,6 @@ describe('WorkflowEngine', () => {
             errorStrategy: 'throw',
           },
         ],
-        output: { strategy: 'all' },
       };
       const engine = new WorkflowEngine(config);
       const result = await engine.execute();
