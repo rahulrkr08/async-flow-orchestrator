@@ -28,8 +28,8 @@ describe('Index Exports', () => {
         ],
         output: { strategy: 'all' },
       });
-      assert.strictEqual(result.context.process1, 'result1');
-      assert.strictEqual(result.processStates.process1, 'completed');
+      assert.strictEqual(result.data.process1, 'result1');
+      assert.strictEqual(result.metadata.states.process1, 'completed');
     });
 
     it('should execute workflow with default output strategy (all)', async () => {
@@ -50,9 +50,9 @@ describe('Index Exports', () => {
         ],
         // output not specified, should default to 'all'
       });
-      assert.strictEqual(result.context.process1, 'result1');
-      assert.strictEqual(result.context.process2, 'result2');
-      assert.deepStrictEqual(Object.keys(result.context).sort(), ['process1', 'process2']);
+      assert.strictEqual(result.data.process1, 'result1');
+      assert.strictEqual(result.data.process2, 'result2');
+      assert.deepStrictEqual(Object.keys(result.data).sort(), ['process1', 'process2']);
     });
 
     it('should execute workflow with logger', async () => {
@@ -73,7 +73,7 @@ describe('Index Exports', () => {
         output: { strategy: 'all' },
         logger,
       });
-      assert.strictEqual(result.context.process1, 'result1');
+      assert.strictEqual(result.data.process1, 'result1');
       assert.strictEqual(logs.length, 1);
       assert.strictEqual(logs[0], 'Process "process1" completed');
     });
@@ -96,8 +96,8 @@ describe('Index Exports', () => {
         ],
         output: { strategy: 'all' },
       });
-      assert.strictEqual(result.context.process1, 10);
-      assert.strictEqual(result.context.process2, 20);
+      assert.strictEqual(result.data.process1, 10);
+      assert.strictEqual(result.data.process2, 20);
     });
 
     it('should execute workflow with initial context', async () => {
@@ -113,7 +113,7 @@ describe('Index Exports', () => {
         output: { strategy: 'all' },
         initialContext: { initial: 'value' },
       });
-      assert.strictEqual(result.context.process1, 'value processed');
+      assert.strictEqual(result.data.process1, 'value processed');
     });
 
     it('should execute workflow with single output strategy', async () => {
@@ -134,8 +134,8 @@ describe('Index Exports', () => {
         ],
         output: { strategy: 'single', processId: 'process2' },
       });
-      assert.deepStrictEqual(Object.keys(result.context), ['process2']);
-      assert.strictEqual(result.context.process2, 'result2');
+      assert.deepStrictEqual(Object.keys(result.data), ['process2']);
+      assert.strictEqual(result.data.process2, 'result2');
     });
 
     it('should execute workflow with multiple output strategy', async () => {
@@ -162,9 +162,9 @@ describe('Index Exports', () => {
         ],
         output: { strategy: 'multiple', processId: ['A', 'C'] },
       });
-      assert.deepStrictEqual(Object.keys(result.context).sort(), ['A', 'C']);
-      assert.strictEqual(result.context.A, 'resultA');
-      assert.strictEqual(result.context.C, 'resultC');
+      assert.deepStrictEqual(Object.keys(result.data).sort(), ['A', 'C']);
+      assert.strictEqual(result.data.A, 'resultA');
+      assert.strictEqual(result.data.C, 'resultC');
     });
 
     it('should handle errors in executeWorkflow', async () => {
@@ -181,9 +181,9 @@ describe('Index Exports', () => {
         ],
         output: { strategy: 'all' },
       });
-      assert.strictEqual(result.processStates.process1, 'failed');
-      assert.ok(result.errors.process1);
-      assert.strictEqual(result.errors.process1.message, 'Test error');
+      assert.strictEqual(result.metadata.states.process1, 'failed');
+      assert.ok(result.metadata.errors.process1);
+      assert.strictEqual(result.metadata.errors.process1.message, 'Test error');
     });
   });
 });

@@ -100,13 +100,15 @@ export interface ProcessState {
  * Workflow execution result
  */
 export interface WorkflowResult {
-  
   /** Process results based on output strategy */
-  context: Record<string, any>;
-  
-  /** Status of each process */
-  processStates: Record<string, ProcessStatus>;
-  
-  /** Any errors that occurred */
-  errors: Record<string, Error>;
+  data: Record<string, any>;
+
+  /** Metadata about workflow execution */
+  metadata: {
+    /** Status of each process */
+    states: Record<string, ProcessStatus>;
+
+    /** Any errors that occurred */
+    errors: Record<string, Error>;
+  };
 }

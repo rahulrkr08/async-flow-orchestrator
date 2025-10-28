@@ -41,8 +41,11 @@ const result = await executeWorkflow({
   output: { strategy: 'all' },  // optional, defaults to 'all'
 });
 
-console.log(result.context);
+console.log(result.data);
 // { fetchUser: { userId: 123, name: 'John Doe' }, processUser: { message: 'Processed John Doe' } }
+
+console.log(result.metadata.states);
+// { fetchUser: 'completed', processUser: 'completed' }
 ```
 
 ## Core Concepts
@@ -89,9 +92,11 @@ interface WorkflowConfig {
 }
 
 interface WorkflowResult {
-  context: Record<string, any>;
-  processStates: Record<string, ProcessStatus>;
-  errors: Record<string, Error>;
+  data: Record<string, any>;
+  metadata: {
+    states: Record<string, ProcessStatus>;
+    errors: Record<string, Error>;
+  };
 }
 ```
 
