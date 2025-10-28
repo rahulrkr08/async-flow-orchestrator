@@ -369,15 +369,17 @@ export class WorkflowEngine {
   }
 
   /**
-   * Build the result object with result, process states, and errors
+   * Build the result object with data and metadata
    */
   private buildResult(resultContext: Record<string, any>): WorkflowResult {
     return {
-      result: resultContext,
-      states: Object.fromEntries(
-        Array.from(this.processStates.entries()).map(([id, state]) => [id, state.status])
-      ),
-      errors: Object.fromEntries(this.errors),
+      data: resultContext,
+      metadata: {
+        states: Object.fromEntries(
+          Array.from(this.processStates.entries()).map(([id, state]) => [id, state.status])
+        ),
+        errors: Object.fromEntries(this.errors),
+      },
     };
   }
 }
