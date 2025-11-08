@@ -8,6 +8,7 @@
     "build": "tsc",
     "examples": "ts-node examples/basic.example.ts",
     "test": "borp --coverage",
+    "benchmark": "ts-node benchmark/index.ts",
     "prepublishOnly": "npm run build",
     "clean": "rm -rf dist"
   },

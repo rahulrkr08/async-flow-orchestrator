@@ -335,16 +335,41 @@ The system automatically validates:
 Full TypeScript support with type definitions included:
 
 ```typescript
-import { 
-  executeWorkflow, 
+import {
+  executeWorkflow,
   WorkflowEngine,
   Process,
   WorkflowConfig,
   WorkflowResult,
   Context,
-  BindEvent 
+  BindEvent
 } from 'async-flow-orchestrator';
 ```
+
+## Performance
+
+The library is optimized for high-throughput asynchronous workflow execution. Here are benchmark results from various workflow patterns:
+
+### Benchmark Results
+
+| Benchmark | Operations/sec | Avg Time | Description |
+|-----------|---------------|----------|-------------|
+| Context Operations | 41,523 ops/s | 0.023 ms | Raw context get/set/has operations |
+| Sequential Workflow | 21,149 ops/s | 0.046 ms | 10 processes in linear chain |
+| Complex Dependencies | 16,480 ops/s | 0.060 ms | 20 processes with multi-level dependencies |
+| Parallel Execution | 10,306 ops/s | 0.096 ms | 10 parallel processes + aggregator |
+| Error Handling | 10,205 ops/s | 0.097 ms | Silent error strategy with fallbacks |
+| Conditional Execution | 10,105 ops/s | 0.098 ms | 15 processes with runtime conditions |
+
+**Test Environment:** Node.js v20+ on Linux
+
+### Running Benchmarks
+
+```bash
+npm run benchmark
+```
+
+For detailed benchmark documentation, see [benchmark/README.md](./benchmark/README.md).
 
 ## License
 
