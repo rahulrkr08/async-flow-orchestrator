@@ -9,7 +9,6 @@ import { parallelBenchmark } from './parallel.benchmark';
 import { complexDependencyBenchmark } from './complex-dependency.benchmark';
 import { conditionalBenchmark } from './conditional.benchmark';
 import { errorHandlingBenchmark } from './error-handling.benchmark';
-import { contextOperationsBenchmark } from './context-operations.benchmark';
 
 interface BenchmarkResult {
   name: string;
@@ -141,13 +140,6 @@ async function main(): Promise<void> {
     'Error Handling (silent strategy)',
     errorHandlingBenchmark,
     1000
-  ));
-
-  // Context operations benchmark
-  results.push(await runBenchmark(
-    'Context Operations (100 operations)',
-    contextOperationsBenchmark,
-    5000
   ));
 
   printResults(results);

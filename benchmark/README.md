@@ -62,16 +62,6 @@ Tests error handling with the 'silent' strategy where some processes fail but th
 - Silent error strategy performance
 - Fallback pattern efficiency
 
-### 6. Context Operations
-**File:** `context-operations.benchmark.ts`
-
-Tests raw context operations: set, get, has, and getAll.
-
-**Measures:**
-- Context manipulation overhead
-- Data storage/retrieval performance
-- Memory efficiency
-
 ## Understanding Results
 
 Each benchmark reports:
