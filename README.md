@@ -354,7 +354,6 @@ The library is optimized for high-throughput asynchronous workflow execution. He
 
 | Benchmark | Operations/sec | Avg Time | Description |
 |-----------|---------------|----------|-------------|
-| Context Operations | 41,523 ops/s | 0.023 ms | Raw context get/set/has operations |
 | Sequential Workflow | 21,149 ops/s | 0.046 ms | 10 processes in linear chain |
 | Complex Dependencies | 16,480 ops/s | 0.060 ms | 20 processes with multi-level dependencies |
 | Parallel Execution | 10,306 ops/s | 0.096 ms | 10 parallel processes + aggregator |
