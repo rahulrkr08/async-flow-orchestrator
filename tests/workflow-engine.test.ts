@@ -472,6 +472,114 @@ describe('WorkflowEngine', () => {
       // Should return empty result
       assert.deepStrictEqual(result.data, {});
     });
+
+    it('should normalize Error objects passed through', async () => {
+      const customError = new Error('Custom error message');
+      const config: WorkflowConfig = {
+        processes: [
+          {
+            id: 'process1',
+            dependencies: [],
+            execute: async () => {
+              throw customError;
+            },
+            errorStrategy: 'silent',
+          },
+        ],
+      };
+      const engine = new WorkflowEngine(config);
+      const result = await engine.execute();
+      assert.strictEqual(result.metadata.states.process1, 'failed');
+      assert.ok(result.metadata.errors.process1);
+      assert.strictEqual(result.metadata.errors.process1.message, 'Custom error message');
+      assert.strictEqual(result.metadata.errors.process1, customError);
+    });
+
+    it('should normalize string errors to Error objects', async () => {
+      const config: WorkflowConfig = {
+        processes: [
+          {
+            id: 'process1',
+            dependencies: [],
+            execute: async () => {
+              throw 'This is a string error';
+            },
+            errorStrategy: 'silent',
+          },
+        ],
+      };
+      const engine = new WorkflowEngine(config);
+      const result = await engine.execute();
+      assert.strictEqual(result.metadata.states.process1, 'failed');
+      assert.ok(result.metadata.errors.process1);
+      assert.ok(result.metadata.errors.process1 instanceof Error);
+      assert.strictEqual(result.metadata.errors.process1.message, 'This is a string error');
+    });
+
+    it('should normalize object errors to JSON string in Error', async () => {
+      const config: WorkflowConfig = {
+        processes: [
+          {
+            id: 'process1',
+            dependencies: [],
+            execute: async () => {
+              throw { code: 'ERR_CUSTOM', details: 'Something went wrong' };
+            },
+            errorStrategy: 'silent',
+          },
+        ],
+      };
+      const engine = new WorkflowEngine(config);
+      const result = await engine.execute();
+      assert.strictEqual(result.metadata.states.process1, 'failed');
+      assert.ok(result.metadata.errors.process1);
+      assert.ok(result.metadata.errors.process1 instanceof Error);
+      assert.ok(result.metadata.errors.process1.message.includes('ERR_CUSTOM'));
+    });
+
+    it('should normalize circular reference errors gracefully', async () => {
+      const config: WorkflowConfig = {
+        processes: [
+          {
+            id: 'process1',
+            dependencies: [],
+            execute: async () => {
+              const obj: any = { a: 1 };
+              obj.self = obj;
+              throw obj;
+            },
+            errorStrategy: 'silent',
+          },
+        ],
+      };
+      const engine = new WorkflowEngine(config);
+      const result = await engine.execute();
+      assert.strictEqual(result.metadata.states.process1, 'failed');
+      assert.ok(result.metadata.errors.process1);
+      assert.ok(result.metadata.errors.process1 instanceof Error);
+      assert.strictEqual(result.metadata.errors.process1.message, 'Unknown error occurred');
+    });
+
+    it('should normalize null/undefined errors', async () => {
+      const config: WorkflowConfig = {
+        processes: [
+          {
+            id: 'process1',
+            dependencies: [],
+            execute: async () => {
+              throw null;
+            },
+            errorStrategy: 'silent',
+          },
+        ],
+      };
+      const engine = new WorkflowEngine(config);
+      const result = await engine.execute();
+      assert.strictEqual(result.metadata.states.process1, 'failed');
+      assert.ok(result.metadata.errors.process1);
+      assert.ok(result.metadata.errors.process1 instanceof Error);
+      assert.strictEqual(result.metadata.errors.process1.message, 'null');
+    });
   });
 
   describe('Logger Integration', () => {

@@ -13,6 +13,42 @@ export interface Logger {
 }
 
 /**
+ * Workflow error - base class for all workflow-related errors
+ */
+export class WorkflowError extends Error {
+  readonly code: string;
+
+  constructor(message: string, code: string = 'WORKFLOW_ERROR') {
+    super(message);
+    this.name = 'WorkflowError';
+    this.code = code;
+    Object.setPrototypeOf(this, WorkflowError.prototype);
+  }
+}
+
+/**
+ * Process execution error - thrown when a process fails
+ */
+export class ProcessError extends WorkflowError {
+  readonly processId: string;
+  readonly originalError: Error;
+  readonly strategy: ErrorStrategy;
+
+  constructor(processId: string, originalError: Error, strategy: ErrorStrategy) {
+    super(
+      `Process "${processId}" failed: ${originalError.message}`,
+      'PROCESS_ERROR'
+    );
+    this.name = 'ProcessError';
+    this.processId = processId;
+    this.originalError = originalError;
+    this.strategy = strategy;
+    this.cause = originalError;
+    Object.setPrototypeOf(this, ProcessError.prototype);
+  }
+}
+
+/**
  * Error handling strategy
  */
 export type ErrorStrategy = 'silent' | 'throw';
@@ -74,7 +110,7 @@ export interface ProcessState {
   status: ProcessStatus;
   dependencies: string[];
   dependents: string[];
-  error?: Error;
+  error?: ProcessError | Error;
 }
 
 /**

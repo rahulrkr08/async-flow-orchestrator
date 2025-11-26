@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { Context, Logger } from '../src/context';
+import { Context } from '../src/context';
+import { Logger } from '../src/types';
 
 describe('Context', () => {
   it('should set and get values', () => {
