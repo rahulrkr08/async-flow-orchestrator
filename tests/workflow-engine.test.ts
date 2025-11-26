@@ -354,6 +354,37 @@ describe('WorkflowEngine', () => {
       assert.strictEqual(result.metadata.states.process2, 'completed');
       assert.strictEqual(result.data.process2, 'executed');
     });
+
+    it('should handle throw error strategy with second process having condition', async () => {
+      const config: WorkflowConfig = {
+        processes: [
+          {
+            id: 'process1',
+            dependencies: [],
+            execute: async () => {
+              throw new Error('Process 1 error');
+            },
+            errorStrategy: 'throw',
+          },
+          {
+            id: 'process2',
+            dependencies: ['process1'],
+            execute: async () => 'process2_result',
+            condition: () => true,
+            errorStrategy: 'silent',
+          },
+        ],
+      };
+      const engine = new WorkflowEngine(config);
+      const result = await engine.execute();
+      // First process should fail with throw strategy
+      assert.strictEqual(result.metadata.states.process1, 'failed');
+      assert.ok(result.metadata.errors.process1);
+      assert.strictEqual(result.metadata.errors.process1.message, 'Process 1 error');
+      // Second process should not execute since its dependency failed
+      assert.strictEqual(result.metadata.states.process2, 'pending');
+      assert.strictEqual(result.data.process2, undefined);
+    });
   });
 
   describe('Error Handling', () => {
