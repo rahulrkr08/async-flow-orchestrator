@@ -3,19 +3,15 @@
  */
 
 import { EventEmitter } from 'events';
+import { Logger } from './types';
+
+// Re-export for backward compatibility
+export type { Logger };
 
 /**
  * Process status
  */
 export type ProcessStatus = 'pending' | 'running' | 'completed' | 'skipped' | 'failed';
-
-/**
- * Logger interface
- */
-export interface Logger {
-  info: (message: string, ...args: any[]) => void;
-  debug: (message: string, ...args: any[]) => void;
-}
 
 /**
  * Bind event emitted when context.set() is called

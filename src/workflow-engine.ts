@@ -2,6 +2,7 @@
  * Workflow Engine - orchestrates process execution
  */
 
+import { EventEmitter } from 'events';
 import { Context, BindEvent } from './context';
 import {
   Process,
@@ -9,12 +10,13 @@ import {
   WorkflowConfig,
   WorkflowResult,
   Logger,
+  ProcessError,
 } from './types';
 
 /**
  * Workflow Engine class
  */
-export class WorkflowEngine {
+export class WorkflowEngine extends EventEmitter {
   private processes: Map<string, Process>;
   private processStates: Map<string, ProcessState>;
   private context: Context;
@@ -23,10 +25,11 @@ export class WorkflowEngine {
   private logger: Logger;
 
   private completedProcesses: string[] = [];
-  private processesInProgress: string[] = [];
+  private processesInProgress: Set<string> = new Set();
   private completionResolver: (() => void) | null = null;
 
   constructor(config: WorkflowConfig) {
+    super();
     this.config = config;
     this.processes = new Map();
     this.processStates = new Map();
@@ -100,16 +103,16 @@ export class WorkflowEngine {
     const ready: string[] = [];
 
     for (const [processId, state] of this.processStates) {
-      
+
       if (
         state.status === 'pending' &&
-        !this.processesInProgress.includes(processId) &&
+        !this.processesInProgress.has(processId) &&
         this.areDependenciesSatisfied(processId)
       ) {
         ready.push(processId);
       }
     }
-    
+
     return ready;
   }
 
@@ -220,26 +223,43 @@ export class WorkflowEngine {
   }
 
   /**
+   * Normalize unknown error to Error instance
+   */
+  private normalizeError(error: unknown): Error {
+    if (error instanceof Error) {
+      return error;
+    }
+    if (typeof error === 'string') {
+      return new Error(error);
+    }
+    try {
+      return new Error(JSON.stringify(error));
+    } catch {
+      return new Error('Unknown error occurred');
+    }
+  }
+
+  /**
    * Execute a single process
    */
   private async executeProcess(processId: string): Promise<void> {
     const process = this.processes.get(processId)!;
     const state = this.processStates.get(processId)!;
 
-    this.processesInProgress.push(processId);
-
-    // Check condition
-    if (!this.shouldExecuteProcess(processId)) {
-      state.status = 'skipped';
-
-      // Set undefined in context to trigger bind event
-      this.context.set(processId, undefined, 'skipped', this.logger);
-      return;
-    }
-
-    state.status = 'running';
+    this.processesInProgress.add(processId);
 
     try {
+      // Check condition
+      if (!this.shouldExecuteProcess(processId)) {
+        state.status = 'skipped';
+
+        // Set undefined in context to trigger bind event
+        this.context.set(processId, undefined, 'skipped', this.logger);
+        return;
+      }
+
+      state.status = 'running';
+
       // Execute process with context
       const result = await process.execute(this.context);
 
@@ -249,19 +269,26 @@ export class WorkflowEngine {
       this.context.set(processId, result, 'completed', this.logger);
 
     } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
+      const err = this.normalizeError(error);
       state.status = 'failed';
       state.error = err;
       this.errors.set(processId, err);
 
+      // Emit error event for external listeners
+      this.emit('processError', {
+        processId,
+        error: err,
+        strategy: process.errorStrategy,
+      });
+
       if (process.errorStrategy === 'throw') {
-        throw new Error(
-          `Process "${processId}" failed with "throw" error strategy: ${err.message}`
-        );
+        throw new ProcessError(processId, err, 'throw');
       }
 
       // For silent errors, still set undefined to unblock dependents
       this.context.set(processId, undefined, 'failed', this.logger);
+    } finally {
+      this.processesInProgress.delete(processId);
     }
   }
 
