@@ -4,6 +4,7 @@
 
 import { EventEmitter } from 'events';
 import { Context, BindEvent } from './context';
+import fastq from 'fastq';
 import {
   Process,
   ProcessState,
@@ -23,6 +24,7 @@ export class WorkflowEngine extends EventEmitter {
   private config: WorkflowConfig;
   private errors: Map<string, Error>;
   private logger: Logger;
+  private queue: fastq.queueAsPromised<() => Promise<void>, void>;
 
   private completedProcesses: string[] = [];
   private processesInProgress: Set<string> = new Set();
@@ -36,6 +38,11 @@ export class WorkflowEngine extends EventEmitter {
     this.context = new Context();
     this.errors = new Map();
     this.logger = config.logger || { info: () => {}, debug: () => {} };
+    // Create a queue with configurable bounded concurrency (defaults to 10)
+    const concurrency = config.concurrency ?? 5;
+    this.queue = fastq.promise(async (task: () => Promise<void>) => {
+      await task();
+    }, concurrency);
 
     // Set initial context values
     if (config.initialContext) {
@@ -71,9 +78,9 @@ export class WorkflowEngine extends EventEmitter {
       const processesToExecute = this.findReadyProcesses();
 
       if (processesToExecute.length > 0) {
-        // Execute all ready processes in parallel
+        // Execute all ready processes with bounded concurrency
         await Promise.all(
-          processesToExecute.map(id => this.executeProcess(id))
+          processesToExecute.map(id => this.queue.push(() => this.executeProcess(id)))
         );
       } else {
         // No processes to execute, check if workflow is complete
@@ -323,9 +330,9 @@ export class WorkflowEngine extends EventEmitter {
         this.completionResolver = resolve;
       });
 
-      // Execute all root processes - they will trigger dependents via bind events
+      // Execute all root processes with bounded concurrency - they will trigger dependents via bind events
       await Promise.all(
-        rootProcesses.map(processId => this.executeProcess(processId))
+        rootProcesses.map(processId => this.queue.push(() => this.executeProcess(processId)))
       );
 
       // Check if there are no ready processes after root execution
