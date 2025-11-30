@@ -100,6 +100,9 @@ export interface WorkflowConfig {
 
   /** Logger instance (defaults to noop logger) */
   logger?: Logger;
+
+  /** Maximum number of concurrent processes (defaults to 10) */
+  concurrency?: number;
 }
 
 /**

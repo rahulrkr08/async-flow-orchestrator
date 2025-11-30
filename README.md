@@ -82,6 +82,7 @@ interface WorkflowConfig {
   processes: Process[];
   initialContext?: Record<string, any>;
   logger?: Logger;                          // Optional custom logger
+  concurrency?: number;                     // Max concurrent processes (default: 10)
 }
 
 interface WorkflowResult {
@@ -249,6 +250,7 @@ const result = await executeWorkflow({
     },
     userId: 789,
   },
+  concurrency: 5,  // Optional: control concurrent processes
 });
 ```
 
@@ -299,6 +301,31 @@ const processes: Process[] = [
 ```
 
 ## Configuration Options
+
+### Concurrency Control
+
+Control the maximum number of processes that can execute in parallel. This prevents resource exhaustion when dealing with large workflows:
+
+```typescript
+// Use default concurrency of 10
+const result = await executeWorkflow({
+  processes
+});
+
+// Configure custom concurrency
+const result = await executeWorkflow({
+  processes,
+  concurrency: 5  // Limit to 5 concurrent processes
+});
+
+// Allow unlimited concurrency (use with caution)
+const result = await executeWorkflow({
+  processes,
+  concurrency: Infinity
+});
+```
+
+The concurrency limit is enforced using [fastq](https://www.npmjs.com/package/fastq), a fast, in-memory work queue that prevents unbounded task execution and resource exhaustion.
 
 ### Error Strategies
 
