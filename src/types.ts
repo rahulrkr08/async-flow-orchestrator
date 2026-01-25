@@ -64,9 +64,17 @@ export type ProcessStatus = 'pending' | 'running' | 'completed' | 'skipped' | 'f
 export type ProcessFunction<T = any> = (context: Context) => Promise<T>;
 
 /**
+ * Metadata about all process states, passed to condition functions
+ */
+export interface ProcessMetadata {
+  /** Status of each process */
+  states: Record<string, ProcessStatus>;
+}
+
+/**
  * Condition function to determine if process should run
  */
-export type ConditionFunction = (context: Context) => boolean;
+export type ConditionFunction = (context: Context, metadata: ProcessMetadata) => boolean;
 
 /**
  * Process definition

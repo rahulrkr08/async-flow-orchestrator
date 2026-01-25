@@ -241,17 +241,82 @@ async function example5_EventListening() {
   console.log('\n');
 }
 
+
+// Example 1: Simple Sequential Flow
+async function example6_SimpleFlow() {
+  console.log('=== Example 6: Simple Sequential Flow ===\n');
+
+  const processes: Process[] = [
+    {
+      id: 'fetchUser',
+      dependencies: [],
+      execute: async (context) => {
+        console.log('  Fetching user...');
+        await delay(100);
+        return { userId: 123, name: 'John Doe', role: 'admin' };
+      },
+      errorStrategy: 'throw',
+    },
+    {
+      id: 'processUser',
+      dependencies: ['fetchUser'],
+      execute: async (context) => {
+        const user = context.get('fetchUser');
+        console.log(`  Processing user: ${user.name}`);
+        await delay(50);
+        return { message: `Processed ${user.name}`, userId: user.userId };
+      },
+      condition: (context) => false,
+      errorStrategy: 'throw',
+    },
+    {
+      id: 'transformUser',
+      dependencies: ['processUser'],
+      execute: async (context) => {
+        const user = context.get('fetchUser');
+        console.log(`  Transforming user: ${user.name}`);
+        await delay(50);
+        return { message: `Transformed ${user.name}`, userId: user.userId };
+      },
+      condition: (context, metadata) => { 
+        console.log(context.getAll(), metadata);
+        return true;
+      },
+      errorStrategy: 'throw',
+    },
+    {
+      id: 'storeUser',
+      dependencies: ['transformUser'],
+      execute: async (context) => {
+        const user = context.get('fetchUser');
+        console.log(`  Storing user: ${user.name}`);
+        await delay(50);
+        return { message: `Stored ${user.name}`, userId: user.userId };
+      },
+      errorStrategy: 'throw',
+    },
+  ];
+
+  const result = await executeWorkflow({
+    processes,
+  });
+
+  console.log('\n✅ Result:', JSON.stringify(result, null, 2));
+  console.log('\n');
+}
+
 // Run All Examples
 async function main() {
   console.log('========================================');
   console.log('Basic Examples');
   console.log('========================================\n');
 
-  await example1_SimpleFlow();
+  // await example1_SimpleFlow();
   // await example2_ParallelFlow();
   // await example3_ConditionalFlow();
   // await example4_ErrorHandling();
   // await example5_EventListening();
+  await example6_SimpleFlow();
 
   console.log('========================================');
   console.log('Done!');
