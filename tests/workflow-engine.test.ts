@@ -355,6 +355,59 @@ describe('WorkflowEngine', () => {
       assert.strictEqual(result.data.process2, 'executed');
     });
 
+    it('should evaluate condition with metadata parameter', async () => {
+      const config: WorkflowConfig = {
+        processes: [
+          {
+            id: 'process1',
+            dependencies: [],
+            execute: async () => 'first',
+            errorStrategy: 'silent',
+          },
+          {
+            id: 'process2',
+            dependencies: ['process1'],
+            execute: async () => 'second',
+            // Use metadata to check the status of process1
+            condition: (_ctx, metadata) => metadata.states.process1 === 'completed',
+            errorStrategy: 'silent',
+          },
+        ],
+      };
+      const engine = new WorkflowEngine(config);
+      const result = await engine.execute();
+      assert.strictEqual(result.metadata.states.process1, 'completed');
+      assert.strictEqual(result.metadata.states.process2, 'completed');
+      assert.strictEqual(result.data.process2, 'second');
+    });
+
+    it('should skip process based on metadata showing skipped dependency', async () => {
+      const config: WorkflowConfig = {
+        processes: [
+          {
+            id: 'optional',
+            dependencies: [],
+            execute: async () => 'optional_result',
+            condition: () => false, // Always skip
+            errorStrategy: 'silent',
+          },
+          {
+            id: 'dependent',
+            dependencies: ['optional'],
+            execute: async () => 'dependent_result',
+            // Skip if optional was skipped (using metadata)
+            condition: (_ctx, metadata) => metadata.states.optional !== 'skipped',
+            errorStrategy: 'silent',
+          },
+        ],
+      };
+      const engine = new WorkflowEngine(config);
+      const result = await engine.execute();
+      assert.strictEqual(result.metadata.states.optional, 'skipped');
+      // dependent is skipped because condition checks metadata for skipped status
+      assert.strictEqual(result.metadata.states.dependent, 'skipped');
+    });
+
     it('should handle throw error strategy with second process having condition', async () => {
       const config: WorkflowConfig = {
         processes: [
@@ -937,6 +990,7 @@ describe('WorkflowEngine', () => {
       assert.strictEqual(result.metadata.states.success, 'completed');
       assert.strictEqual(result.metadata.states.skipped, 'skipped');
       assert.strictEqual(result.metadata.states.failed, 'failed');
+      // dependent executes (no condition), skip propagation is opt-in via condition function
       assert.strictEqual(result.metadata.states.dependent, 'completed');
     });
 

@@ -9,6 +9,7 @@ export {
   ErrorStrategy,
   ProcessFunction,
   ConditionFunction,
+  ProcessMetadata,
   Process,
   WorkflowConfig,
   ProcessState,

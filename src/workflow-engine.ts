@@ -8,6 +8,7 @@ import fastq from 'fastq';
 import {
   Process,
   ProcessState,
+  ProcessMetadata,
   WorkflowConfig,
   WorkflowResult,
   Logger,
@@ -201,15 +202,26 @@ export class WorkflowEngine extends EventEmitter {
    */
   private areDependenciesSatisfied(processId: string): boolean {
     const state = this.processStates.get(processId)!;
-    
+
     for (const depId of state.dependencies) {
       const depState = this.processStates.get(depId)!;
       if (depState.status !== 'completed' && depState.status !== 'skipped' && depState.status !== 'failed') {
         return false;
       }
     }
-    
+
     return true;
+  }
+
+  /**
+   * Get current process states metadata
+   */
+  private getProcessMetadata(): ProcessMetadata {
+    return {
+      states: Object.fromEntries(
+        Array.from(this.processStates.entries()).map(([id, state]) => [id, state.status])
+      ),
+    };
   }
 
   /**
@@ -223,7 +235,7 @@ export class WorkflowEngine extends EventEmitter {
     }
 
     try {
-      return process.condition(this.context);
+      return process.condition(this.context, this.getProcessMetadata());
     } catch (error) {
       return false;
     }
