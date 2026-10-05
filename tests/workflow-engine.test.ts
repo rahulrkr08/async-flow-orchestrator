@@ -1096,4 +1096,25 @@ describe('WorkflowEngine', () => {
       assert.ok(result.metadata.errors.throwingProcess);
     });
   });
+  describe('Run once', () => {
+    it('runs each process once when a sibling in the same batch is skipped', async () => {
+      const runs: Record<string, number> = {};
+      const run = (id: string) => async () => {
+        runs[id] = (runs[id] ?? 0) + 1;
+        return id;
+      };
+      const config: WorkflowConfig = {
+        processes: [
+          { id: 'root', dependencies: [], execute: run('root'), errorStrategy: 'silent' },
+          { id: 'skipped', dependencies: ['root'], condition: () => false, execute: run('skipped'), errorStrategy: 'silent' },
+          { id: 'b', dependencies: ['root'], execute: run('b'), errorStrategy: 'silent' },
+          { id: 'c', dependencies: ['root'], execute: run('c'), errorStrategy: 'silent' },
+          { id: 'd', dependencies: ['b', 'c', 'skipped'], execute: run('d'), errorStrategy: 'silent' },
+        ],
+      };
+      const result = await new WorkflowEngine(config).execute();
+      assert.deepStrictEqual(runs, { root: 1, b: 1, c: 1, d: 1 });
+      assert.strictEqual(result.metadata.states.skipped, 'skipped');
+    });
+  });
 });

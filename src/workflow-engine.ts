@@ -81,7 +81,7 @@ export class WorkflowEngine extends EventEmitter {
       if (processesToExecute.length > 0) {
         // Execute all ready processes with bounded concurrency
         await Promise.all(
-          processesToExecute.map(id => this.queue.push(() => this.executeProcess(id)))
+          this.schedule(processesToExecute)
         );
       } else {
         // No processes to execute, check if workflow is complete
@@ -259,11 +259,28 @@ export class WorkflowEngine extends EventEmitter {
   }
 
   /**
+   * Queue processes for execution. Every process is claimed before any is pushed:
+   * a skipped process binds synchronously, and the nested bind would otherwise
+   * find the rest of this batch still ready and queue them a second time.
+   */
+  private schedule(processIds: string[]): Promise<void>[] {
+    for (const processId of processIds) {
+      this.processesInProgress.add(processId);
+    }
+    return processIds.map(processId => this.queue.push(() => this.executeProcess(processId)));
+  }
+
+  /**
    * Execute a single process
    */
   private async executeProcess(processId: string): Promise<void> {
     const process = this.processes.get(processId)!;
     const state = this.processStates.get(processId)!;
+
+    // A process runs once
+    if (state.status !== 'pending') {
+      return;
+    }
 
     this.processesInProgress.add(processId);
 
@@ -344,7 +361,7 @@ export class WorkflowEngine extends EventEmitter {
 
       // Execute all root processes with bounded concurrency - they will trigger dependents via bind events
       await Promise.all(
-        rootProcesses.map(processId => this.queue.push(() => this.executeProcess(processId)))
+        this.schedule(rootProcesses)
       );
 
       // Check if there are no ready processes after root execution
